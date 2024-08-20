@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>EmotionAR</title>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+
+		html, body {
+			width: 100%;
+			height: 100%;
+			background-color: rgb(16, 16, 16);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			overflow: hidden;
+		}
+
+		#vidholder {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			background-color: rgb(32, 32, 32);
+			border-radius: 15px;
+			aspect-ratio: 16 / 9;
+			width: 70%;
+			overflow: hidden;
+		}
+
+		#vidfeed {
+			height: 100%;
+		}
+
+
+	</style>
+</head>
+<body>
+	<div id='vidholder'>
+		<video id='vidfeed' autoplay></video>
+	</div>
+	<div id="emotionfeed"></div>
+	<script src="script.js"></script>
+</body>
+</html>
