@@ -1,14 +1,7 @@
-// DOM elements
+// DOM elements and variables
 const vidfeed = document.getElementById("vidfeed");
+const canvas = document.getElementById("vidoverlay");
+const ctx = canvas.getContext('2d');
 
 
-// Streaming webcam
-navigator.mediaDevices.getUserMedia({ video: true })
-.then((stream) => {
-		vidfeed.srcObject = stream;
-	}
-)
-.catch((err) => {
-		console.log("Error: ", err);
-	}
-);
+startVideo();

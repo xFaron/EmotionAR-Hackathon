@@ -16,8 +16,9 @@
 			height: 100%;
 			background-color: rgb(16, 16, 16);
 			display: flex;
+			flex-direction: row;
 			align-items: center;
-			justify-content: center;
+			justify-content: space-evenly;
 			overflow: hidden;
 		}
 
@@ -36,14 +37,31 @@
 			height: 100%;
 		}
 
+		#vidoverlay {
+			width: 100%;
+			height: 100%;
+		}
+
+		#emotionfeed {
+			width: 20%;
+			aspect-ratio: 1 / 1;
+			border-radius: 15px;
+			background-color: rgb(0, 10, 0);
+		}
+
 
 	</style>
 </head>
 <body>
+	<script defer src="https://cdn.jsdelivr.net/npm/face-api.js"></script> <!-- faceapi, the ai to detect faces -->
+	<script defer src="func.js"></script>
+	<script defer src="script.js"></script>
+
 	<div id='vidholder'>
-		<video id='vidfeed' autoplay></video>
+		<video id='vidfeed' autoplay>
+			<canvas id='vidoverlay'></canvas>
+		</video>
 	</div>
 	<div id="emotionfeed"></div>
-	<script src="script.js"></script>
 </body>
 </html>
