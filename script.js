@@ -77,3 +77,8 @@ loadModels();
 ctx.fillStyle = 'green';
 ctx.strokeStyle = 'green';
 ctx.lineWidth = 5;
+
+setInterval(() => {
+	detectFaces();
+	ctx.clearRect(0, 0, vidSize.width, vidSize.height);
+}, 100)
