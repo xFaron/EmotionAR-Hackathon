@@ -25,20 +25,33 @@ async function startVideo() {
 
 // Loads the models
 async function loadModels() {
-	await faceapi.loadTinyFaceDetectorModel('./models');
-	await faceapi.loadFaceExpressionModel('./models');
+	try {
+		console.log("Loading models");
+		await faceapi.loadTinyFaceDetectorModel('./models');
+		await faceapi.loadFaceExpressionModel('./models');
+		console.log("Models loaded succefully!");
+		detectFaces()
+	} catch (err) {
+		console.log("Error: ", err);
+	}
 }
 
-// Detects the faces by inputting the vid stream
-async function detectFace() {
-	const detections = await faceapi.detectAllFaces(input, new faceapi.TinyFaceDetectorOptions())
-	return detections
+// Detects the faces by inputting the vid stream, and draws boxes
+async function detectFaces() {
+	console.log("Detecting face");
+	const detections = await faceapi.detectAllFaces(vidfeed, new faceapi.TinyFaceDetectorOptions()); // Detect facce with TinyModel
+	console.log("Detected");
+	const detectionsResized  = faceapi.resizeResults(detections, vidSize); // Resizes results for provided canvas (precaution)
+	
+	detectionsResized.forEach((face) => {
+		let x = face._box._x;
+		let y = face._box._y;
+		let width = face._box._width;
+		let height = face._box._height;
+		ctx.strokeStyle = "Blue"
+		ctx.strokeRect(x, y, width, height);
+	})
 }
-
-// // Draws the boxes for the detections on canvas
-// function drawDetections(detections) {
-
-// }
 
 
 function resizeCanvas() {
@@ -48,6 +61,8 @@ function resizeCanvas() {
 	};
 	canvas.style.width = `${vidSize.width}px`;
 	canvas.style.height = `${vidSize.height}px`;
+	canvas.width = vidSize.width;
+	canvas.height = vidSize.height;
 }
 
 
@@ -59,10 +74,6 @@ window.addEventListener('resize', () => {
 startVideo();
 loadModels();
 
-// ctx.fillStyle = 'white';
-//ctx.fillRect(0, 0, vidSize.width, vidSize.height);
-
-// setTimeout(() => {
-// 	let faces = detectFace();
-// 	drawDetections(faces);
-// }, 100);
+ctx.fillStyle = 'green';
+ctx.strokeStyle = 'green';
+ctx.lineWidth = 5;
