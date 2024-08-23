@@ -75,7 +75,6 @@ async function loadModels() {
 		await faceapi.loadFaceLandmarkModel('./models')
 		await faceapi.loadFaceExpressionModel('./models');
 		console.log("Models loaded succefully!");
-		detectFaces()
 	} catch (err) {
 		console.log("Error: ", err);
 	}
@@ -83,13 +82,10 @@ async function loadModels() {
 
 // Detects the faces by inputting the vid stream, and draws boxes
 async function detectFaces() {
-	console.log("Detecting face");
 	const detections = await faceapi.detectAllFaces(vidfeed, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceExpressions(); // Detect facce with TinyModel
-	console.log("Detected");
 	const detectionsResized  = faceapi.resizeResults(detections, vidSize); // Resizes results for provided canvas (precaution)
 	
 	detectionsResized.forEach((face) => {
-		console.log(face);
 
 		//Reading emotion
 		let top_emotion, top_emotion_val = 0; 
@@ -99,7 +95,6 @@ async function detectFaces() {
 				top_emotion_val = face.expressions[emotion];
 			}
 		})
-		console.log(emotion[top_emotion]);
 
 		//Changing feed based on emotion
 		if (last_emotion != top_emotion){
