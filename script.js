@@ -7,7 +7,7 @@ const ctx = canvas.getContext('2d');
 
 // Other constants
 const camBtnOffColor = 'red';
-const camBtnOnColor = 'green';
+const camBtnOnColor = 'rgb(64, 64, 64)';
 
 //Filter images
 //Sunglass
@@ -19,6 +19,59 @@ const sunglass_data = {
 	leftEye : {x : 9, y : 3}, //left glass eye coord
 	rightEye : {x : 17, y : 3} //right glass eye coord
 };
+//Heart Eyes
+const heartEyesImg = new Image();
+heartEyesImg.src = "./assets/HeartEyes.png";
+const heartEyes_data = {
+	width: heartEyesImg.width,
+	height: heartEyesImg.height,
+	leftEye : {x : 5, y : 3}, //left glass eye coord
+	rightEye : {x : 12, y : 3} //right glass eye coord
+};
+//Eyes
+const EyesImg = new Image();
+EyesImg.src = "./assets/Eyes.png";
+const Eyes_data = {
+	width: EyesImg.width,
+	height: EyesImg.height,
+	leftEye : {x : 8, y : 6}, //left glass eye coord
+	rightEye : {x : 16, y : 6} //right glass eye coord
+};
+//NerdGlasses
+const nerdGlassesImg = new Image();
+nerdGlassesImg.src = "./assets/NerdGlasses.png";
+const nerdGlasses_data = {
+	width: nerdGlassesImg.width,
+	height: nerdGlassesImg.height,
+	leftEye : {x : 7, y : 6}, //left glass eye coord
+	rightEye : {x : 17, y : 6} //right glass eye coord
+};
+//NerdGlasses2
+const nerdGlasses2Img = new Image();
+nerdGlasses2Img.src = "./assets/NerdGlasses2.png";
+const nerdGlasses2_data = {
+	width: nerdGlasses2Img.width,
+	height: nerdGlasses2Img.height,
+	leftEye : {x : 8, y : 6}, //left glass eye coord
+	rightEye : {x : 16, y : 6} //right glass eye coord
+};
+//NerdStache
+const nerdStacheImg = new Image();
+nerdStacheImg.src = "./assets/NerdStache.png";
+const nerdStache_data = {
+	width: nerdStacheImg.width,
+	height: nerdStacheImg.height,
+	mouthWidth: 7,
+	center: {x : 14, y : 3}
+};
+
+let cosmetics = [
+	{type: ['eye'], img: [sunglassImg], data: [sunglass_data], emoji: "😎"},
+	{type: ['eye'], img: [heartEyesImg], data: [heartEyes_data], emoji: "😍"},
+	{type: ['eye'], img: [EyesImg], data: [Eyes_data], emoji: "👀"},
+	{type: ['eye', 'stache'], img: [nerdGlassesImg, nerdStacheImg], data: [nerdGlasses_data, nerdStache_data], emoji: "🥸"}
+];
+
 
 //Emotion emojis
 let emotion = {
@@ -102,6 +155,16 @@ async function detectFaces() {
 			emotionFeed.innerHTML = emotion[top_emotion];
 		}
 
+		// let x = face.landmarks.getMouth();
+		// x.forEach((point, i) => {
+		// 	ctx.beginPath();
+		// 	ctx.fillStyle = `rgb(${10*i},${10*i},${10*i})`
+		// 	ctx.arc(point.x, point.y, 5, 0, Math.PI * 2);
+		// 	ctx.fill();
+		// 	ctx.closePath();
+		// })
+
+
 		// Finding left eye coords
 		let data = face.landmarks.getLeftEye();
 		let leftEye = {x:0, y:0};
@@ -122,17 +185,70 @@ async function detectFaces() {
 		rightEye.x /= 6;
 		rightEye.y /= 6;
 
+		// Finding top and central point on mouth
+		data = face.landmarks.getMouth();
+		let mouthTopPoint = {x:0, y:0}, mouthWidth;
+		let sumX = 0, maxY = null, maxX = null, minX = null;
+		data.forEach((point) => {
+			if (maxY == null || maxY > point.y){
+				maxY = point.y;
+			}
+
+			if (maxX == null || maxX < point.x){
+				maxX = point.x;
+			}
+
+			if (maxY == null || maxX > point.x){
+				minX = point.x;
+			}
+
+			sumX += point.x;
+		})
+		mouthTopPoint.x = sumX / data.length;
+		mouthTopPoint.y = maxY;
+		mouthWidth = Math.abs(maxX - minX);
+
+		//Finding bottom and central point on nose
+		data = face.landmarks.getNose();
+		let noseBottomPoint = {x:0, y:0};
+		sumX = 0, minY = null;
+		data.forEach((point) => {
+			if (minY == null || minY < point.y){
+				minY = point.y
+			}
+
+			sumX += point.x;
+		})
+		noseBottomPoint.x = sumX / data.length;
+		noseBottomPoint.y = minY;
+
 		// Drawing filter
 		ctx.clearRect(0, 0, vidSize.width, vidSize.height);
-		if (last_emotion == "happy"){
-			ctx.beginPath();
-			if (sunglassImg.complete){
-				let calc = calcImgLocn(sunglass_data, leftEye, rightEye);
-				ctx.imageSmoothingEnabled = false;
-				ctx.drawImage(sunglassImg, calc.x, calc.y, calc.width, calc.height);
-			}
-			ctx.closePath();
+		ctx.beginPath();
+
+		//Selecting cosmetics
+		let wearable = cosmetics[3];
+
+		let loaded = true;
+		wearable.img.forEach((img) => {
+			loaded = loaded && img.complete
+		})
+
+		if (loaded){
+			wearable.type.forEach((type, index) => {
+				if (type == 'eye'){
+					let calc = calcEyeImgLocn(wearable.data[index], leftEye, rightEye);
+					ctx.imageSmoothingEnabled = false;
+					ctx.drawImage(wearable.img[index], calc.x, calc.y, calc.width, calc.height);
+				} else if (type == 'stache'){
+					let calc = calcStacheImgLocn(wearable.data[index], noseBottomPoint, mouthTopPoint, mouthWidth);
+					ctx.imageSmoothingEnabled = false;
+					ctx.drawImage(wearable.img[index], calc.x, calc.y, calc.width, calc.height);
+				}
+			})
 		}
+
+		ctx.closePath();
 
 		// //Bounding box info
 		// let x = face.detection._box._x;
@@ -148,7 +264,7 @@ async function detectFaces() {
 }
 
 //Sunglass type image locn finder
-function calcImgLocn(img_data, leftEye, rightEye) {
+function calcEyeImgLocn(img_data, leftEye, rightEye) {
 
 	let req_vals = { x: 0, y: 0, width: 0, height: 0};
 
@@ -159,6 +275,21 @@ function calcImgLocn(img_data, leftEye, rightEye) {
 
 	req_vals.x = leftEye.x - (img_data.leftEye.x * k);
 	req_vals.y = leftEye.y - (img_data.leftEye.y * k);
+	req_vals.width = img_data.width * k;
+	req_vals.height = img_data.height * k;
+
+	return req_vals;
+}
+
+//Stache type image locn finder
+function calcStacheImgLocn(img_data, noseBottomPoint, mouthTopPoint, mouthWidth){
+	let req_vals = { x: 0, y: 0, width: 0, height: 0}; 
+	let k = mouthWidth / img_data.mouthWidth;
+
+	// Taking the avg of the noseBottom and mouthTop point to get the central posn of our stache, but as we need the top left corner point, shifting from there by k * img_data.center(vec), k scales it up to appropriate dimensions
+	req_vals.x = (noseBottomPoint.x + mouthTopPoint.x)/2 - (img_data.center.x * k);
+	req_vals.y = (noseBottomPoint.y + mouthTopPoint.y)/2 - (img_data.center.y * k);
+
 	req_vals.width = img_data.width * k;
 	req_vals.height = img_data.height * k;
 
