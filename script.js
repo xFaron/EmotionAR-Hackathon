@@ -53,8 +53,8 @@ nerdGlasses2Img.src = "./assets/NerdGlasses2.png";
 const nerdGlasses2_data = {
 	width: nerdGlasses2Img.width,
 	height: nerdGlasses2Img.height,
-	leftEye : {x : 8, y : 6}, //left glass eye coord
-	rightEye : {x : 16, y : 6} //right glass eye coord
+	leftEye : {x : 7, y : 6}, //left glass eye coord
+	rightEye : {x : 17, y : 6} //right glass eye coord
 };
 //NerdStache
 const nerdStacheImg = new Image();
@@ -71,7 +71,8 @@ let cosmetics = [
 	{type: ['eye'], img: [sunglassImg], data: [sunglass_data], emoji: "😎"},
 	{type: ['eye'], img: [heartEyesImg], data: [heartEyes_data], emoji: "😍"},
 	{type: ['eye'], img: [EyesImg], data: [Eyes_data], emoji: "👀"},
-	{type: ['eye', 'stache'], img: [nerdGlassesImg, nerdStacheImg], data: [nerdGlasses_data, nerdStache_data], emoji: "🥸"}
+	{type: ['eye', 'stache'], img: [nerdGlassesImg, nerdStacheImg], data: [nerdGlasses_data, nerdStache_data], emoji: "🥸"},
+	{type: ['eye', 'stache'], img: [nerdGlasses2Img, nerdStacheImg], data: [nerdGlasses2_data, nerdStache_data], emoji: "👓"}
 ];
 let currentCosmeticNo = 0;
 
