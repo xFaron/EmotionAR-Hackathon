@@ -1,7 +1,8 @@
 //DOM Elements
 const vidfeed = document.getElementById("vidfeed");
 const canvas = document.getElementById("vidoverlay");
-const camBtn = document.getElementById("camswitch");
+const camBtn = document.getElementsByClassName("cam")[0];
+const cosmeticBtn = document.getElementsByClassName("cosmetic")[0];
 const emotionFeed = document.getElementById("emotionfeed");
 const ctx = canvas.getContext('2d');
 
@@ -66,12 +67,13 @@ const nerdStache_data = {
 };
 
 let cosmetics = [
+	{type: [], img: [], data: [], emoji: "🚫"},
 	{type: ['eye'], img: [sunglassImg], data: [sunglass_data], emoji: "😎"},
 	{type: ['eye'], img: [heartEyesImg], data: [heartEyes_data], emoji: "😍"},
 	{type: ['eye'], img: [EyesImg], data: [Eyes_data], emoji: "👀"},
 	{type: ['eye', 'stache'], img: [nerdGlassesImg, nerdStacheImg], data: [nerdGlasses_data, nerdStache_data], emoji: "🥸"}
 ];
-
+let currentCosmeticNo = 0;
 
 //Emotion emojis
 let emotion = {
@@ -142,6 +144,7 @@ async function detectFaces() {
 
 		//Reading emotion
 		let top_emotion, top_emotion_val = 0; 
+		ctx.clearRect(0, 0, vidSize.width, vidSize.height);
 		Object.keys(face.expressions).forEach(emotion => {
 			if (top_emotion_val < face.expressions[emotion]){
 				top_emotion = emotion;
@@ -155,79 +158,10 @@ async function detectFaces() {
 			emotionFeed.innerHTML = emotion[top_emotion];
 		}
 
-		// let x = face.landmarks.getMouth();
-		// x.forEach((point, i) => {
-		// 	ctx.beginPath();
-		// 	ctx.fillStyle = `rgb(${10*i},${10*i},${10*i})`
-		// 	ctx.arc(point.x, point.y, 5, 0, Math.PI * 2);
-		// 	ctx.fill();
-		// 	ctx.closePath();
-		// })
-
-
-		// Finding left eye coords
-		let data = face.landmarks.getLeftEye();
-		let leftEye = {x:0, y:0};
-		data.forEach((point) => {
-			leftEye.x += point.x;
-			leftEye.y += point.y;
-		})
-		leftEye.x /= 6;
-		leftEye.y /= 6;
-
-		// Finding right eye coords
-		data = face.landmarks.getRightEye();
-		let rightEye = {x:0, y:0};
-		data.forEach((point) => {
-			rightEye.x += point.x;
-			rightEye.y += point.y;
-		})
-		rightEye.x /= 6;
-		rightEye.y /= 6;
-
-		// Finding top and central point on mouth
-		data = face.landmarks.getMouth();
-		let mouthTopPoint = {x:0, y:0}, mouthWidth;
-		let sumX = 0, maxY = null, maxX = null, minX = null;
-		data.forEach((point) => {
-			if (maxY == null || maxY > point.y){
-				maxY = point.y;
-			}
-
-			if (maxX == null || maxX < point.x){
-				maxX = point.x;
-			}
-
-			if (maxY == null || maxX > point.x){
-				minX = point.x;
-			}
-
-			sumX += point.x;
-		})
-		mouthTopPoint.x = sumX / data.length;
-		mouthTopPoint.y = maxY;
-		mouthWidth = Math.abs(maxX - minX);
-
-		//Finding bottom and central point on nose
-		data = face.landmarks.getNose();
-		let noseBottomPoint = {x:0, y:0};
-		sumX = 0, minY = null;
-		data.forEach((point) => {
-			if (minY == null || minY < point.y){
-				minY = point.y
-			}
-
-			sumX += point.x;
-		})
-		noseBottomPoint.x = sumX / data.length;
-		noseBottomPoint.y = minY;
-
-		// Drawing filter
-		ctx.clearRect(0, 0, vidSize.width, vidSize.height);
 		ctx.beginPath();
 
 		//Selecting cosmetics
-		let wearable = cosmetics[3];
+		let wearable = cosmetics[currentCosmeticNo];
 
 		let loaded = true;
 		wearable.img.forEach((img) => {
@@ -237,10 +171,70 @@ async function detectFaces() {
 		if (loaded){
 			wearable.type.forEach((type, index) => {
 				if (type == 'eye'){
+
+					// Finding left eye coords
+					let data = face.landmarks.getLeftEye();
+					let leftEye = {x:0, y:0};
+					data.forEach((point) => {
+						leftEye.x += point.x;
+						leftEye.y += point.y;
+					})
+					leftEye.x /= 6;
+					leftEye.y /= 6;
+
+					// Finding right eye coords
+					data = face.landmarks.getRightEye();
+					let rightEye = {x:0, y:0};
+					data.forEach((point) => {
+						rightEye.x += point.x;
+						rightEye.y += point.y;
+					})
+					rightEye.x /= 6;
+					rightEye.y /= 6;
+
 					let calc = calcEyeImgLocn(wearable.data[index], leftEye, rightEye);
 					ctx.imageSmoothingEnabled = false;
 					ctx.drawImage(wearable.img[index], calc.x, calc.y, calc.width, calc.height);
+
 				} else if (type == 'stache'){
+
+					// Finding top and central point on mouth
+					data = face.landmarks.getMouth();
+					let mouthTopPoint = {x:0, y:0}, mouthWidth;
+					let sumX = 0, maxY = null, maxX = null, minX = null;
+					data.forEach((point) => {
+						if (maxY == null || maxY > point.y){
+							maxY = point.y;
+						}
+
+						if (maxX == null || maxX < point.x){
+							maxX = point.x;
+						}
+
+						if (maxY == null || maxX > point.x){
+							minX = point.x;
+						}
+
+						sumX += point.x;
+					})
+					mouthTopPoint.x = sumX / data.length; // Taking avg of all x values
+					mouthTopPoint.y = maxY;
+					mouthWidth = Math.abs(maxX - minX);
+
+					//Finding bottom and central point on nose
+					data = face.landmarks.getNose();
+					let noseBottomPoint = {x:0, y:0};
+					sumX = 0, minY = null;
+					data.forEach((point) => {
+						if (minY == null || minY < point.y){
+							minY = point.y
+						}
+
+						sumX += point.x;
+					})
+					noseBottomPoint.x = sumX / data.length; // Taking avg of all x values
+					noseBottomPoint.y = minY;
+
 					let calc = calcStacheImgLocn(wearable.data[index], noseBottomPoint, mouthTopPoint, mouthWidth);
 					ctx.imageSmoothingEnabled = false;
 					ctx.drawImage(wearable.img[index], calc.x, calc.y, calc.width, calc.height);
@@ -250,16 +244,6 @@ async function detectFaces() {
 
 		ctx.closePath();
 
-		// //Bounding box info
-		// let x = face.detection._box._x;
-		// let y = face.detection._box._y;
-		// let width = face.detection._box._width;
-		// let height = face.detection._box._height;
-
-		// //Drawing bounding box
-
-		// ctx.strokeStyle = "Blue"
-		// ctx.strokeRect(x, y, width, height);
 	})
 }
 
@@ -308,6 +292,24 @@ function resizeCanvas() {
 	canvas.height = vidSize.height;
 }
 
+function ifLoaded() {
+	return new Promise(resolve => {
+		const interval = setInterval(() => {
+			let loaded = true;
+			cosmetics.forEach(wearable => {
+				wearable.img.forEach(img => {
+					loaded = loaded && img.complete;
+				})
+			})
+
+			if (loaded) {
+				clearInterval(interval);
+				resolve();
+			}
+		}, 100);
+	})
+}
+
 
 function loop() {
 	if (camOn) {
@@ -317,6 +319,13 @@ function loop() {
 	requestAnimationFrame(loop);
 }
 
+async function init() {
+	console.log("Loading images");
+	await loadModels()
+	await ifLoaded();
+	console.log("Images loaded!");
+	loop();
+}
 
 window.addEventListener('resize', () => {
 	// When the window resizes, the canvas also has to be resized
@@ -331,6 +340,15 @@ camBtn.addEventListener('click', () => {
 	}
 })
 
+cosmeticBtn.addEventListener('click', () => {
+	if (currentCosmeticNo + 1 == cosmetics.length){
+		currentCosmeticNo = 0;
+	} else {
+		currentCosmeticNo++;
+	}
+
+	cosmeticBtn.innerHTML = `${cosmetics[currentCosmeticNo].emoji}`;
+})
+
 startCam();
-loadModels();
-loop();
+init();
